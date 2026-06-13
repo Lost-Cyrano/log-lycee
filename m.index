@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeux par MAIRE Anael - Menu Principal</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --accent-color: #f59e0b;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --border-color: #334155;
+            --success-color: #10b981;
+            --hover-glow: 0 0 15px rgba(124, 58, 237, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at 20% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .welcome-section h2 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-glow), 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+        }
+
+        .game-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .game-card h3 {
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+            font-size: 1.4rem;
+        }
+
+        .game-card p {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .game-tags {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--secondary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .coming-soon {
+            background: linear-gradient(135deg, #64748b, #475569);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .coming-soon:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        footer p {
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .container {
+                padding: 1.5rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Animation pour les cartes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .game-card:nth-child(1) { animation-delay: 0.1s; }
+        .game-card:nth-child(2) { animation-delay: 0.2s; }
+        .game-card:nth-child(3) { animation-delay: 0.3s; }
+        .game-card:nth-child(4) { animation-delay: 0.4s; }
+        .game-card:nth-child(5) { animation-delay: 0.5s; }
+        .game-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 Jeux par MAIRE Anael</h1>
+        <p>Découvrez mes créations ludiques jouables à plusieurs</p>
+    </header>
+
+    <div class="container">
+        <section class="welcome-section">
+            <h2>Bienvenue sur ma plateforme de jeux</h2>
+            <p>Je crée des jeux et logiciels innovants conçus pour être accessibles et amusants à plusieurs joueurs. 
+            Que ce soit pour des soirées entre amis, des défis familiaux ou des compétitions en ligne, 
+            vous trouverez ici une sélection de mes créations.</p>
+        </section>
+
+        <section class="games-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: var(--accent-color);">Mes Jeux Disponibles</h2>
+            <div class="games-grid">
+                <!-- Jeu 1 - À remplacer par vos vrais jeux -->
+                <div class="game-card">
+                    <div class="game-icon">🃏</div>
+                    <h3>Cartes Stratégiques</h3>
+                    <p>Un jeu de cartes tactique où la stratégie et la chance s'affrontent. Jouez en ligne avec vos amis ou contre l'IA.</p>
+                    <div class="game-tags">
+                        <span class="tag">2-6 joueurs</span>
+                        <span class="tag">En ligne</span>
+                        <span class="tag">Stratégie</span>
+                    </div>
+                    <a href="jeux/cartes-strategiques.html" class="btn">Jouer maintenant</a>
+                </div>
+
+                <!-- Jeu 2 -->
+                <div class="game-card">
+                    <div class="game-icon">♟️</div>
+                    <h3>Échecs Variantes</h3>
+                    <p>Des variantes uniques du jeu d'échecs classique avec des règles spéciales et des pièces personnalisées.</p>
+                    <div class="game-tags">
+                        <span class="tag">2 joueurs</span>
+                        <span class="tag">En ligne</span>
+                        <span class="tag">Réflexion</span>
+                    </div>
+                    <a href="jeux/echecs-variantes.html" class="btn">Jouer maintenant</a>
+                </div>
+
+                <!-- Jeu 3 -->
+                <div class="game-card">
+                    <div class="game-icon">🧩</div>
+                    <h3>Puzzle Collaboratif</h3>
+                    <p>Résolvez des énigmes complexes en équipe. Chaque joueur a un rôle unique pour réussir les défis.</p>
+                    <div class="game-tags">
+                        <span class="tag">2-4 joueurs</span>
+                        <span class="tag">Coopératif</span>
+                        <span class="tag">Réflexion</span>
+                    </div>
+                    <a href="jeux/puzzle-collaboratif.html" class="btn">Jouer maintenant</a>
+                </div>
+
+                <!-- Jeu 4 -->
+                <div class="game-card">
+                    <div class="game-icon">⚡</div>
+                    <h3>Quiz Rapide</h3>
+                    <p>Un quiz dynamique avec des questions sur divers thèmes. Le plus rapide l'emporte !</p>
+                    <div class="game-tags">
+                        <span class="tag">2-8 joueurs</span>
+                        <span class="tag">En ligne</span>
+                        <span class="tag">Rapidité</span>
+                    </div>
+                    <a href="jeux/quiz-rapide.html" class="btn">Jouer maintenant</a>
+                </div>
+
+                <!-- Jeu 5 - Exemple de jeu à venir -->
+                <div class="game-card">
+                    <div class="game-icon">🎲</div>
+                    <h3>Dés & Aventures</h3>
+                    <p>Un jeu de rôle léger où vos choix et vos lancers de dés déterminent votre destin.</p>
+                    <div class="game-tags">
+                        <span class="tag">2-5 joueurs</span>
+                        <span class="tag">Aventure</span>
+                        <span class="tag">Hasard</span>
+                    </div>
+                    <a href="jeux/des-aventures.html" class="btn">Jouer maintenant</a>
+                </div>
+
+                <!-- Jeu 6 - À venir -->
+                <div class="game-card">
+                    <div class="game-icon">🔮</div>
+                    <h3>Mystère à Résoudre</h3>
+                    <p>Un jeu d'enquête où les joueurs collaborent pour résoudre un mystère captivant.</p>
+                    <div class="game-tags">
+                        <span class="tag">3-6 joueurs</span>
+                        <span class="tag">Coopératif</span>
+                        <span class="tag">À venir</span>
+                    </div>
+                    <button class="btn coming-soon" disabled>Bientôt disponible</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Créé par <strong>MAIRE Anael</strong> | © 2026 Tous droits réservés</p>
+        <p>Partagez ces jeux avec vos amis et famille !</p>
+        <div class="social-links">
+            <!-- Remplacez par vos vrais liens -->
+            <a href="#" aria-label="GitHub">💻</a>
+            <a href="#" aria-label="Twitter">🐦</a>
+            <a href="#" aria-label="Discord">💬</a>
+            <a href="#" aria-label="Email">✉️</a>
+        </div>
+    </footer>
+
+    <script>
+        // Animation au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Appliquer aux cartes
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
