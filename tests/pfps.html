@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jeu P2P - Pierre Feuille Ciseaux</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .screen { display: none; }
+    .active { display: block; }
+    button {
+      padding: 12px 24px;
+      margin: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+    button:hover { background: #45a049; }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin: 8px;
+      width: 200px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #qrcode img {
+      margin: 20px auto;
+      max-width: 250px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background: white;
+    }
+    #preview {
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ddd;
+      margin: 10px auto;
+    }
+    .game-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .game-buttons button {
+      font-size: 18px;
+      padding: 15px 20px;
+    }
+    #gameResult {
+      margin-top: 20px;
+      min-height: 60px;
+      padding: 15px;
+      background: white;
+      border-radius: 4px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    h1 { color: #333; }
+    .status { margin: 15px 0; font-size: 18px; color: #555; }
+  </style>
+</head>
+<body>
+
+  <!-- Écran d'accueil -->
+  <div id="homeScreen" class="screen active">
+    <h1>🎮 Jeu P2P</h1>
+    <p><strong>Pierre - Feuille - Ciseaux</strong></p>
+    <div>
+      <button id="createBtn">🆕 Créer une partie</button>
+      <button id="joinBtn">🔗 Rejoindre une partie</button>
+    </div>
+  </div>
+
+  <!-- Écran de création -->
+  <div id="createScreen" class="screen">
+    <h1>Partie créée !</h1>
+    <p>Code de partie : <strong id="partyCode"></strong></p>
+    <div id="qrcode"></div>
+    <p class="status">Attendez qu'un adversaire scanne ce QR Code ou entre le code.</p>
+  </div>
+
+  <!-- Écran de rejoindre -->
+  <div id="joinScreen" class="screen">
+    <h1>Rejoindre une partie</h1>
+    <div>
+      <button id="scanBtn">📷 Scanner QR Code</button>
+      <p>OU</p>
+      <input type="text" id="partyCodeInput" placeholder="Code de partie (ex: party_abc123)">
+      <button id="joinManualBtn">Rejoindre</button>
+    </div>
+    <div id="scanner" style="display: none;">
+      <video id="preview"></video>
+      <button id="stopScanBtn" style="margin-top: 10px;">Arrêter le scan</button>
+    </div>
+    <p id="joinStatus" class="status"></p>
+  </div>
+
+  <!-- Écran de jeu -->
+  <div id="gameScreen" class="screen">
+    <h1>Partie : <span id="gamePartyCode"></span></h1>
+    <p id="gameStatus" class="status">Connexion en cours...</p>
+    <div class="game-buttons">
+      <button onclick="makeChoice('Pierre')">✊ Pierre</button>
+      <button onclick="makeChoice('Feuille')">✋ Feuille</button>
+      <button onclick="makeChoice('Ciseaux')">✌️ Ciseaux</button>
+    </div>
+    <div id="gameResult"></div>
+  </div>
+
+  <script>
+    // --- Variables globales ---
+    let peer = null;
+    let conn = null;
+    let partyId = null;
+    let role = null;
+    let myChoice = null;
+    let opponentChoice = null;
+    let scannerInstance = null;
+
+    // --- Éléments DOM ---
+    const screens = {
+      home: document.getElementById('homeScreen'),
+      create: document.getElementById('createScreen'),
+      join: document.getElementById('joinScreen'),
+      game: document.getElementById('gameScreen')
+    };
+    const scannerDiv = document.getElementById('scanner');
+    const preview = document.getElementById('preview');
+    const stopScanBtn = document.getElementById('stopScanBtn');
+
+    // --- Fonctions utilitaires ---
+    function showScreen(screenName) {
+      Object.values(screens).forEach(screen => screen.classList.remove('active'));
+      screens[screenName].classList.add('active');
+    }
+
+    function generatePartyId() {
+      return 'party_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    }
+
+    function determineWinner(choice1, choice2) {
+      if (choice1 === choice2) return "➖ Égalité !";
+      if (
+        (choice1 === "Pierre" && choice2 === "Ciseaux") ||
+        (choice1 === "Feuille" && choice2 === "Pierre") ||
+        (choice1 === "Ciseaux" && choice2 === "Feuille")
+      ) return "✅ Vous gagnez !";
+      return "❌ Vous perdez !";
+    }
+
+    // --- Configurer le jeu ---
+    function setupGame(connection) {
+      conn = connection;
+
+      connection.on('open', () => {
+        showScreen('game');
+        document.getElementById('gamePartyCode').textContent = partyId;
+        document.getElementById('gameStatus').textContent = '✅ Connecté ! À vous de jouer.';
+        document.getElementById('gameResult').innerHTML = '';
+      });
+
+      connection.on('data', (data) => {
+        if (data.type === 'choice') {
+          opponentChoice = data.choice;
+          document.getElementById('gameResult').innerHTML += `<p><strong>Adversaire</strong> : ${data.choice}</p>`;
+
+          if (myChoice) {
+            const result = determineWinner(myChoice, opponentChoice);
+            document.getElementById('gameResult').innerHTML += `<p><strong>${result}</strong></p><hr>`;
+            myChoice = null;
+            opponentChoice = null;
+          }
+        }
+      });
+
+      connection.on('close', () => {
+        document.getElementById('gameStatus').textContent = '❌ Déconnecté. Attente...';
+      });
+
+      connection.on('error', () => {
+        document.getElementById('gameStatus').textContent = '⚠️ Erreur de connexion.';
+      });
+    }
+
+    // --- Créer une partie ---
+    document.getElementById('createBtn').addEventListener('click', () => {
+      partyId = generatePartyId();
+      role = 'host';
+
+      peer = new Peer(partyId);
+
+      peer.on('open', () => {
+        document.getElementById('partyCode').textContent = partyId;
+        const url = `${window.location.origin}${window.location.pathname}?partyId=${partyId}`;
+        new QRCode(document.getElementById('qrcode'), url);
+        showScreen('create');
+      });
+
+      peer.on('connection', (connection) => {
+        setupGame(connection);
+      });
+
+      peer.on('error', (err) => {
+        console.error('Erreur PeerJS:', err);
+        alert('Erreur : ' + err.message + '\n\nVérifiez votre connexion Internet.');
+      });
+    });
+
+    // --- Rejoindre une partie (scan QR) ---
+    document.getElementById('scanBtn').addEventListener('click', () => {
+      showScreen('join');
+      scannerDiv.style.display = 'block';
+      stopScanBtn.style.display = 'block';
+
+      scannerInstance = new Instascan.Scanner({ video: preview });
+
+      scannerInstance.addListener('scan', (content) => {
+        const url = new URL(content.startsWith('http') ? content : 'https://' + content);
+        const partyIdFromQR = url.searchParams.get('partyId');
+        if (partyIdFromQR) {
+          scannerInstance.stop();
+          scannerDiv.style.display = 'none';
+          stopScanBtn.style.display = 'none';
+          joinParty(partyIdFromQR);
+        }
+      });
+
+      Instascan.Camera.getCameras().then((cameras) => {
+        if (cameras.length > 0) {
+          scannerInstance.start(cameras[0]);
+        } else {
+          alert('Aucune caméra trouvée !');
+          scannerDiv.style.display = 'none';
+          stopScanBtn.style.display = 'none';
+        }
+      }).catch(() => {
+        alert('Impossible d\'accéder à la caméra.');
+        scannerDiv.style.display = 'none';
+        stopScanBtn.style.display = 'none';
+      });
+    });
+
+    // --- Arrêter le scan ---
+    stopScanBtn.addEventListener('click', () => {
+      if (scannerInstance) scannerInstance.stop();
+      scannerDiv.style.display = 'none';
+      stopScanBtn.style.display = 'none';
+    });
+
+    // --- Rejoindre une partie (manuellement) ---
+    document.getElementById('joinManualBtn').addEventListener('click', () => {
+      const partyCode = document.getElementById('partyCodeInput').value.trim();
+      if (!partyCode) {
+        alert('Veuillez entrer un code de partie.');
+        return;
+      }
+      joinParty(partyCode);
+    });
+
+    // --- Fonction pour rejoindre une partie ---
+    function joinParty(partyIdParam) {
+      partyId = partyIdParam;
+      role = 'guest';
+      document.getElementById('joinStatus').textContent = 'Connexion en cours...';
+
+      peer = new Peer();
+
+      peer.on('open', () => {
+        conn = peer.connect(partyId);
+        conn.on('open', () => setupGame(conn));
+        conn.on('error', () => {
+          document.getElementById('joinStatus').textContent = '❌ Impossible de se connecter. Vérifiez le code.';
+        });
+      });
+
+      peer.on('error', (err) => {
+        document.getElementById('joinStatus').textContent = '❌ Erreur : ' + err.message;
+      });
+    }
+
+    // --- Faire un choix (Pierre/Feuille/Ciseaux) ---
+    function makeChoice(choice) {
+      myChoice = choice;
+      if (conn && conn.open) {
+        conn.send({ type: 'choice', choice });
+        document.getElementById('gameResult').innerHTML += `<p><strong>Vous</strong> : ${choice}</p>`;
+      } else {
+        document.getElementById('gameResult').innerHTML += '<p style="color: red;">Erreur : pas de connexion</p>';
+      }
+    }
+
+    // --- Gérer l'URL au chargement (si lien direct) ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const partyIdParam = urlParams.get('partyId');
+      if (partyIdParam) joinParty(partyIdParam);
+    });
+  </script>
+</body>
+</html>
