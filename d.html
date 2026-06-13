@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MAIRE ANAEL · Hub Créatif | Jeux & Logiciels</title>
+    <!-- Google Fonts pour une typo moderne et lisible -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (gratuit, icônes propres) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0b0f1c 0%, #0a0e1a 100%);
+            font-family: 'Inter', sans-serif;
+            color: #edeff5;
+            line-height: 1.4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* élégant effet de grille subtile */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(70, 130, 200, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(70, 130, 200, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        /* EN-TÊTE CRÉATEUR */
+        .hero {
+            text-align: center;
+            margin-bottom: 3.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 2rem;
+        }
+
+        .badge-creator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255, 215, 100, 0.12);
+            backdrop-filter: blur(4px);
+            padding: 0.5rem 1.4rem;
+            border-radius: 80px;
+            border: 1px solid rgba(255,200,100,0.3);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-creator i {
+            color: #ffd966;
+            font-size: 1.2rem;
+        }
+
+        h1 {
+            font-size: 3.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF 0%, #C0D4FF 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.6rem;
+        }
+
+        .subhead {
+            font-size: 1.2rem;
+            color: #a5b3d9;
+            max-width: 650px;
+            margin: 0 auto;
+            font-weight: 400;
+        }
+
+        .signature {
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: #6c7aa8;
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .signature span i {
+            margin-right: 0.3rem;
+            color: #ffb347;
+        }
+
+        /* SECTION STYLE CARTES (menu principal) */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 2rem 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #ffb347;
+            padding-left: 20px;
+        }
+
+        .section-title i {
+            color: #ffb347;
+            font-size: 1.6rem;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* carte interactive */
+        .game-card {
+            background: rgba(18, 24, 40, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow: hidden;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 180, 70, 0.5);
+            background: rgba(25, 33, 55, 0.85);
+            box-shadow: 0 30px 40px -15px rgba(0,0,0,0.5);
+        }
+
+        .card-img {
+            height: 140px;
+            background: linear-gradient(125deg, #1e243f, #11162a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.2rem;
+            position: relative;
+            border-bottom: 1px solid rgba(255,215,100,0.2);
+        }
+
+        /* icône décor par catégorie */
+        .card-content {
+            padding: 1.5rem 1.5rem 1.8rem;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title span {
+            background: rgba(255,180,70,0.2);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: #ffcd81;
+        }
+
+        .card-desc {
+            color: #b9c2e6;
+            font-size: 0.9rem;
+            margin: 0.6rem 0 1rem;
+            line-height: 1.45;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #8d9ad0;
+            margin-top: 0.8rem;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            padding-top: 0.9rem;
+        }
+
+        .meta-info i {
+            width: 1.3rem;
+            color: #ffaa44;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.6rem;
+        }
+
+        .play-btn {
+            background: none;
+            border: none;
+            color: #ffcd81;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
+        }
+
+        .play-btn i {
+            transition: transform 0.2s;
+        }
+
+        .play-btn:hover {
+            color: #ffbb44;
+            background: rgba(255,200,100,0.1);
+        }
+
+        .play-btn:hover i {
+            transform: translateX(4px);
+        }
+
+        /* bannière spécial logiciels utilitaires */
+        .tools-section {
+            margin-top: 1rem;
+        }
+
+        /* modal / simulateur de jeu (pour démo rapide) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', monospace;
+        }
+
+        .modal-card {
+            background: #101624;
+            max-width: 550px;
+            width: 90%;
+            border-radius: 2rem;
+            border: 1px solid rgba(255,185,80,0.5);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+            animation: fadeUp 0.25s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .modal-header {
+            background: #1a1f32;
+            padding: 1.2rem 1.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ffb34740;
+        }
+
+        .modal-header h3 {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #cdd6ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #ffaa55;
+        }
+
+        .modal-body {
+            padding: 2rem 1.8rem;
+        }
+
+        .demo-game {
+            background: #0b0f1c;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 0.8rem;
+        }
+
+        .fake-gamepad {
+            font-size: 4rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .demo-action {
+            background: #ffb34720;
+            border: 1px solid #ffb347;
+            color: #ffcd81;
+            padding: 0.6rem 1.2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        .demo-action:hover {
+            background: #ffb347;
+            color: #0b0f1c;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+            color: #6b779f;
+        }
+
+        footer i {
+            color: #ff9f4a;
+        }
+
+        @media (max-width: 680px) {
+            .container { padding: 1rem 1rem 2rem; }
+            h1 { font-size: 2.5rem; }
+            .section-title { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hero">
+        <div class="badge-creator">
+            <i class="fas fa-code-branch"></i>
+            <span>MAIRE ANAEL · STUDIO CRÉATIF</span>
+            <i class="fas fa-gamepad"></i>
+        </div>
+        <h1>✨ L'Atelier Multivers ✨</h1>
+        <div class="subhead">
+            Jeux, logiciels & expériences originales — tout droit sortis de mon imagination.
+        </div>
+        <div class="signature">
+            <span><i class="fas fa-crown"></i> Créé par MAIRE Anael</span>
+            <span><i class="fas fa-rocket"></i> Multijoueur & solo</span>
+            <span><i class="fas fa-cogs"></i> Outils originaux</span>
+        </div>
+    </div>
+
+    <!-- SECTION JEUX PRINCIPAUX (multijoueur / solo fun) -->
+    <div class="section-title">
+        <i class="fas fa-dice-d6"></i> 
+        <span>⚡ Jeux à plusieurs / party games</span>
+    </div>
+    <div class="grid-cards" id="gamesContainer">
+        <!-- Les cartes seront injectées dynamiquement via JS pour maintenir la cohérence des infos et faciliter l'ajout -->
+    </div>
+
+    <!-- SECTION LOGICIELS & OUTILS MAISON -->
+    <div class="section-title tools-section">
+        <i class="fas fa-laptop-code"></i>
+        <span>🛠️ Logiciels & utilitaires signature</span>
+    </div>
+    <div class="grid-cards" id="toolsContainer">
+        <!-- Injecté dynamiquement -->
+    </div>
+
+    <!-- PETITE INFO SUR LE MULTIJOUEUR IMMINENT -->
+    <div style="background: rgba(255,180,70,0.07); border-radius: 2rem; padding: 1rem 1.8rem; margin-top: 1rem; text-align: center; border: 1px dashed #ffb34760;">
+        <i class="fas fa-users" style="color:#ffb347; margin-right: 10px;"></i>
+        <span style="font-weight: 500;">🎮 Tous mes jeux sont pensés pour être partagés : en local, à plusieurs sur un même écran ou en ligne (prochainement). Cliquez sur "Jouer / Lancer" pour un aperçu !</span>
+    </div>
+</div>
+
+<footer>
+    <i class="fas fa-copyright"></i> MAIRE Anael — Créations originales 2025 · Interface hub principal · <i class="fas fa-mouse-pointer"></i> Chaque carte ouvre une démo immersive
+</footer>
+
+<!-- MODAL UNIVERSELLE pour simuler le lancement des jeux/logiciels -->
+<div id="dynamicModal" class="modal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle">Lancement</h3>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- contenu généré dynamiquement -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // MENU PRINCIPAL - BASE DE DONNEES DES JEUX & LOGICIELS
+    // MAIRE Anael : ajoutez, modifiez ou enrichissez cette liste
+    // --------------------------------------------------------------
+    const GAMES_LIBRARY = [
+        {
+            id: "party_pong",
+            title: "⚡ Party Pong Arena",
+            type: "jeu",
+            category: "multijoueur",
+            shortDesc: "Jusqu'à 4 joueurs, rebondissez et marquez ! Idéal pour soirées.",
+            players: "2-4 joueurs locaux",
+            icon: "🏓",
+            color: "#ff884d",
+            demoMsg: "🎯 Mode démo : Lancez la balle avec le clavier (espace) ou cliquez. Version complète multijoueur disponible bientôt."
+        },
+        {
+            id: "quiz_master",
+            title: "📚 Quiz Mania (Multi)",
+            type: "jeu",
+            category: "multijoueur",
+            shortDesc: "Culture générale, blind test, défis personnalisés. Créez vos propres questions !",
+            players: "2 équipes jusqu'à 8 joueurs",
+            icon: "🧠",
+            demoMsg: "🔍 Aperçu Quiz : thème aléatoire. Dans la version finale, affrontez vos amis avec un code de salon."
+        },
+        {
+            id: "sketch_duel",
+            title: "✏️ Sketch & Devine",
+            type: "jeu",
+            category: "multijoueur",
+            shortDesc: "Dessinez, faites deviner en temps réel. Le party game créatif !",
+            players: "3-6 joueurs (écran partagé)",
+            icon: "🎨",
+            demoMsg: "🖌️ Micro-jeu de dessin : un mot secret, chronomètre fictif. Le jeu complet inclut salons privés."
+        },
+        {
+            id: "astro_racer",
+            title: "🚀 Astro Racer",
+            type: "jeu",
+            category: "solo/coop",
+            shortDesc: "Course spatiale survoltée, mode coopération ou contre-la-montre.",
+            players: "1-2 joueurs",
+            icon: "🏎️",
+            demoMsg: "🌠 Démo vaisseau: utilisez les flèches ← → pour esquiver les astéroïdes (simulation). Expérience complète avec 12 circuits."
+        }
+    ];
+
+    const TOOLS_LIBRARY = [
+        {
+            id: "pixel_studio",
+            title: "🎨 PixelForge",
+            type: "logiciel",
+            shortDesc: "Éditeur de sprite / pixel art intégré. Exportez vos créations pour mes jeux !",
+            features: "Calques, animation simple",
+            icon: "🖌️",
+            demoMsg: "✨ PixelForge - version démo : palette de 16 couleurs, grille 32x32. Interface complète dans la mise à jour v2.0."
+        },
+        {
+            id: "sound_mixer",
+            title: "🔊 Mini Mix Lab",
+            type: "logiciel",
+            shortDesc: "Studio audio léger : boucles, beats, enregistrement de samples pour vos parties.",
+            features: "Mixeur 4 pistes",
+            icon: "🎧",
+            demoMsg: "🎛️ Lancez le lab : appuyez sur les touches 1-4 pour jouer des samples (démo sonore). Outil idéal pour créer des ambiances de jeu."
+        },
+        {
+            id: "network_helper",
+            title: "🌐 LAN Party Helper",
+            type: "logiciel",
+            shortDesc: "Utilitaire réseau pour connecter facilement vos amis sur mes jeux multijoueurs.",
+            features: "Découverte automatique",
+            icon: "📡",
+            demoMsg: "📡 Helper v0.8 : scan du réseau local (simulation) et partage d'adresse IP. Interface conviviale pour lancer des serveurs privés."
+        },
+        {
+            id: "quest_designer",
+            title: "📜 Générateur d'aventures",
+            type: "logiciel",
+            shortDesc: "Créez des quêtes, donjons & dialogues pour RPG. Export JSON pour mes futurs jeux.",
+            features: "IA assistée",
+            icon: "🗺️",
+            demoMsg: "🏰 Générez une quête aléatoire : clic sur 'Nouvelle aventure' (démonstration). Le logiciel complet sortira en été 2025."
+        }
+    ];
+
+    // Fonction pour générer une carte HTML (commun pour jeux et outils)
+    function createCard(item, isGame = true) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'game-card';
+        
+        // Icône de fond / img
+        const bgEmoji = item.icon || (isGame ? "🎮" : "🛠️");
+        const playersInfo = isGame ? `<i class="fas fa-user-friends"></i> ${item.players || '1-4 joueurs'}` : `<i class="fas fa-sliders-h"></i> ${item.features || 'utilitaire maison'}`;
+        
+        // Badge secondaire (type)
+        const typeLabel = isGame ? (item.category === 'multijoueur' ? '🎉 MULTI' : '🎮 SOLO/COOP') : '💡 LOGICIEL';
+        
+        cardDiv.innerHTML = `
+            <div class="card-img" style="background: linear-gradient(125deg, #181f38, #0f1325);">
+                <span style="font-size: 4rem; filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.5));">${bgEmoji}</span>
+            </div>
+            <div class="card-content">
+                <div class="card-title">
+                    ${item.title}
+                    <span>${typeLabel}</span>
+                </div>
+                <div class="card-desc">${item.shortDesc}</div>
+                <div class="meta-info">
+                    <i class="${isGame ? 'fas fa-gamepad' : 'fas fa-microchip'}"></i>
+                    <span>${playersInfo}</span>
+                </div>
+                <div class="card-footer">
+                    <button class="play-btn" data-id="${item.id}" data-type="${isGame ? 'game' : 'tool'}">
+                        <span>${isGame ? 'Jouer / Découvrir' : 'Lancer l\'outil'}</span> <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const btn = cardDiv.querySelector('.play-btn');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModalForItem(item, isGame);
+        });
+        
+        return cardDiv;
+    }
+    
+    // Remplir les conteneurs
+    const gamesContainer = document.getElementById('gamesContainer');
+    const toolsContainer = document.getElementById('toolsContainer');
+    
+    GAMES_LIBRARY.forEach(game => {
+        gamesContainer.appendChild(createCard(game, true));
+    });
+    
+    TOOLS_LIBRARY.forEach(tool => {
+        toolsContainer.appendChild(createCard(tool, false));
+    });
+    
+    // ---- GESTION MODAL AVEC SIMULATION D'EXPÉRIENCE (jeu/logiciel) ----
+    const modal = document.getElementById('dynamicModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    
+    function openModalForItem(item, isGame) {
+        // construction du contenu dynamique "démo / aperçu" car c'est un menu principal
+        // Chaque item a une propriété demoMsg (message explicatif)
+        // On propose une mini interaction ou un petit jeu symbolique
+        const demoMessage = item.demoMsg || (isGame ? "Version complète bientôt disponible. Restez à l'écoute des prochaines mises à jour !" : "Logiciel en cours d'amélioration, la beta sortira très vite.");
+        
+        // Contenu interactif personnalisé selon l'id pour donner une petite simulation amusante
+        let interactiveDemo = '';
+        if (item.id === 'party_pong') {
+            interactiveDemo = `<div class="demo-game">
+                <div class="fake-gamepad">🏓 🎾</div>
+                <p><strong>Mini simulation Pong Party</strong></p>
+                <button id="pongDemoBtn" class="demo-action">🏓 Lancer un échange</button>
+                <p id="pongResult" style="margin-top: 10px; font-size:0.9rem;"></p>
+            </div>`;
+        } else if (item.id === 'sound_mixer') {
+            interactiveDemo = `<div class="demo-game">
+                <div class="fake-gamepad">🎹🔊</div>
+                <p><strong>Studio Mini Lab</strong> · Cliquez sur les pads :</p>
+                <div style="display:flex; gap: 12px; justify-content:center; margin:12px 0;">
+                    <button class="demo-action" data-sound="kick">🥁 Kick</button>
+                    <button class="demo-action" data-sound="snare">🎛️ Snare</button>
+                    <button class="demo-action" data-sound="hat">🔔 Hat</button>
+                </div>
+                <p id="mixerFeedback" style="font-size:0.85rem;">🎧 Appuyez pour entendre (simulation audio)</p>
+            </div>`;
+        } else if (item.id === 'quest_designer') {
+            interactiveDemo = `<div class="demo-game">
+                <div class="fake-gamepad">🗺️✨</div>
+                <button id="genQuestBtn" class="demo-action">✨ Générer une quête aléatoire</button>
+                <p id="questResult" style="margin-top: 14px; background:#00000030; padding:10px; border-radius:20px;">Cliquez pour créer une aventure signature MAIRE Anael</p>
+            </div>`;
+        } else if (item.id === 'astro_racer') {
+            interactiveDemo = `<div class="demo-game">
+                <div class="fake-gamepad">🚀 🌠</div>
+                <p><strong>Contrôle du vaisseau (démo)</strong><br>← → pour esquiver</p>
+                <div id="astroDemoArea" style="background:#010314; padding:10px; border-radius:24px; min-height:80px; position:relative;">
+                    <span id="shipIcon" style="font-size:2rem; display:inline-block;">🚀</span>
+                    <span style="margin-left:20px;">👉 Astéroïdes fictifs</span>
+                </div>
+                <p id="astroStatus">Appuyez sur ← / →</p>
+            </div>`;
+        } else {
+            interactiveDemo = `<div class="demo-game">
+                <i class="fas fa-info-circle" style="font-size:2rem; color:#ffb347;"></i>
+                <p style="margin-top: 12px;">✨ <strong>Aperçu interactif</strong><br>${demoMessage}</p>
+                <div style="background:#00000030; border-radius: 28px; padding: 0.8rem; margin-top: 0.8rem;">
+                    <i class="fas fa-code-branch"></i> MAIRE Anael — Création originale
+                </div>
+            </div>`;
+        }
+        
+        const genericInfo = `<p style="margin-bottom: 0.8rem;"><i class="fas ${isGame ? 'fa-gamepad' : 'fa-cogs'}"></i> ${item.title} — ${item.shortDesc}</p>`;
+        
+        modalBody.innerHTML = `
+            ${genericInfo}
+            ${interactiveDemo || `<div class="demo-game"><p>📦 Démo technique :<br> ${demoMessage}</p></div>`}
+            <p style="font-size: 0.75rem; margin-top: 1rem; text-align:center; border-top: 1px solid #2a2f4e; padding-top: 0.8rem;">Interface de lancement — version intégrale disponible très prochainement</p>
+        `;
+        
+        modalTitle.innerText = isGame ? `🎮 ${item.title}` : `🛠️ ${item.title}`;
+        modal.style.display = 'flex';
+        
+        // Ajout des listeners pour les démos interactives
+        if (item.id === 'party_pong') {
+            setTimeout(() => {
+                const btnPong = document.getElementById('pongDemoBtn');
+                const pongRes = document.getElementById('pongResult');
+                if (btnPong) btnPong.onclick = () => { pongRes.innerHTML = '🏓 Balle rebondie ! Point pour le joueur 1 (démo multijoueur locale dispo) 🎉'; };
+            }, 20);
+        }
+        if (item.id === 'sound_mixer') {
+            setTimeout(() => {
+                const btns = document.querySelectorAll('[data-sound]');
+                const feedback = document.getElementById('mixerFeedback');
+                btns.forEach(btn => {
+                    btn.onclick = () => { feedback.innerHTML = `🔊 Son "${btn.innerText}" joué (simulation audio) — version complète avec export WAV.`; };
+                });
+            }, 20);
+        }
+        if (item.id === 'quest_designer') {
+            setTimeout(() => {
+                const genBtn = document.getElementById('genQuestBtn');
+                const questDiv = document.getElementById('questResult');
+                const quests = ["🧙 La quête du Cristal Oublié", "🐉 Le donjon des Échos", "🏴‍☠️ Trésor du Kraken Silencieux", "✨ L'énigme des Pixel Runes"];
+                if (genBtn) genBtn.onclick = () => { questDiv.innerHTML = `✨ ${quests[Math.floor(Math.random() * quests.length)]} — générée par l'Atelier MAIRE Anael.`; };
+            }, 20);
+        }
+        if (item.id === 'astro_racer') {
+            setTimeout(() => {
+                let pos = 0;
+                const ship = document.getElementById('shipIcon');
+                const status = document.getElementById('astroStatus');
+                if (ship) {
+                    window.addEventListener('keydown', function astroHandler(e) {
+                        if (modal.style.display !== 'flex') { window.removeEventListener('keydown', astroHandler); return; }
+                        if (e.key === 'ArrowLeft') { pos = Math.max(0, pos-15); ship.style.transform = `translateX(${pos}px)`; status.innerText = '🚀 Esquive gauche !'; }
+                        if (e.key === 'ArrowRight') { pos = Math.min(200, pos+15); ship.style.transform = `translateX(${pos}px)`; status.innerText = '💨 Déplacement droite'; }
+                        e.preventDefault();
+                    });
+                }
+            }, 20);
+        }
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
+        modalBody.innerHTML = '';
+    }
+    
+    closeModalBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    
+    // petit effet pour éviter les conflits d'écoute
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+        }
+    });
+</script>
+</body>
+</html>
