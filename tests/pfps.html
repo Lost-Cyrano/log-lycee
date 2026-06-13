@@ -4,9 +4,12 @@
   <title>Jeu P2P - Pierre Feuille Ciseaux</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PeerJS avec serveur public fiable -->
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <!-- QR Code -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <!-- Scanner QR (alternative si Instascan ne marche pas) -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/dist/umd/index.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,9 +30,9 @@
       color: white;
       border: none;
       border-radius: 4px;
-      transition: background 0.3s;
     }
     button:hover { background: #45a049; }
+    button:disabled { background: #cccccc; cursor: not-allowed; }
     input {
       padding: 10px;
       font-size: 16px;
@@ -38,12 +41,10 @@
       border: 1px solid #ddd;
       border-radius: 4px;
     }
-    #qrcode img {
+    #qrcode {
       margin: 20px auto;
-      max-width: 250px;
-      border: 1px solid #ddd;
-      padding: 10px;
-      background: white;
+      width: 200px;
+      height: 200px;
     }
     #preview {
       width: 100%;
@@ -72,6 +73,8 @@
     }
     h1 { color: #333; }
     .status { margin: 15px 0; font-size: 18px; color: #555; }
+    .error { color: red; }
+    #debug { font-size: 12px; color: #888; text-align: left; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -80,10 +83,12 @@
   <div id="homeScreen" class="screen active">
     <h1>🎮 Jeu P2P</h1>
     <p><strong>Pierre - Feuille - Ciseaux</strong></p>
+    <p style="font-size: 14px; color: #666;">(Ouvrez ce fichier sur deux appareils différents)</p>
     <div>
       <button id="createBtn">🆕 Créer une partie</button>
       <button id="joinBtn">🔗 Rejoindre une partie</button>
     </div>
+    <div id="debug"></div>
   </div>
 
   <!-- Écran de création -->
@@ -92,6 +97,7 @@
     <p>Code de partie : <strong id="partyCode"></strong></p>
     <div id="qrcode"></div>
     <p class="status">Attendez qu'un adversaire scanne ce QR Code ou entre le code.</p>
+    <p style="font-size: 14px; color: #666;">Lien direct : <span id="partyUrl" style="word-break: break-all;"></span></p>
   </div>
 
   <!-- Écran de rejoindre -->
@@ -100,11 +106,11 @@
     <div>
       <button id="scanBtn">📷 Scanner QR Code</button>
       <p>OU</p>
-      <input type="text" id="partyCodeInput" placeholder="Code de partie (ex: party_abc123)">
+      <input type="text" id="partyCodeInput" placeholder="Code de partie (ex: PARTY_ABC123)">
       <button id="joinManualBtn">Rejoindre</button>
     </div>
     <div id="scanner" style="display: none;">
-      <video id="preview"></video>
+      <video id="preview" playsinline></video>
       <button id="stopScanBtn" style="margin-top: 10px;">Arrêter le scan</button>
     </div>
     <p id="joinStatus" class="status"></p>
@@ -115,11 +121,12 @@
     <h1>Partie : <span id="gamePartyCode"></span></h1>
     <p id="gameStatus" class="status">Connexion en cours...</p>
     <div class="game-buttons">
-      <button onclick="makeChoice('Pierre')">✊ Pierre</button>
-      <button onclick="makeChoice('Feuille')">✋ Feuille</button>
-      <button onclick="makeChoice('Ciseaux')">✌️ Ciseaux</button>
+      <button onclick="makeChoice('Pierre')" id="pierreBtn">✊ Pierre</button>
+      <button onclick="makeChoice('Feuille')" id="feuilleBtn">✋ Feuille</button>
+      <button onclick="makeChoice('Ciseaux')" id="ciseauxBtn">✌️ Ciseaux</button>
     </div>
     <div id="gameResult"></div>
+    <div id="debugGame"></div>
   </div>
 
   <script>
@@ -131,6 +138,8 @@
     let myChoice = null;
     let opponentChoice = null;
     let scannerInstance = null;
+    let codeReader = null;
+    let stream = null;
 
     // --- Éléments DOM ---
     const screens = {
@@ -142,15 +151,26 @@
     const scannerDiv = document.getElementById('scanner');
     const preview = document.getElementById('preview');
     const stopScanBtn = document.getElementById('stopScanBtn');
+    const debugEl = document.getElementById('debug');
+    const debugGameEl = document.getElementById('debugGame');
 
     // --- Fonctions utilitaires ---
+    function log(message) {
+      console.log(message);
+      debugEl.textContent += message + '\n';
+    }
+
+    function logGame(message) {
+      debugGameEl.textContent += message + '\n';
+    }
+
     function showScreen(screenName) {
       Object.values(screens).forEach(screen => screen.classList.remove('active'));
       screens[screenName].classList.add('active');
     }
 
     function generatePartyId() {
-      return 'party_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      return 'PARTY_' + Math.random().toString(36).substr(2, 6).toUpperCase();
     }
 
     function determineWinner(choice1, choice2) {
@@ -163,18 +183,35 @@
       return "❌ Vous perdez !";
     }
 
+    // --- Configurer PeerJS avec un serveur fiable ---
+    function initPeer(id = null) {
+      return new Peer(id, {
+        host: 'peerjs-server.herokuapp.com',  // Serveur public alternatif
+        port: 443,
+        path: '/peerjs',
+        secure: true,
+        debug: 2
+      });
+    }
+
     // --- Configurer le jeu ---
     function setupGame(connection) {
       conn = connection;
 
       connection.on('open', () => {
+        logGame('✅ Connexion établie !');
         showScreen('game');
         document.getElementById('gamePartyCode').textContent = partyId;
-        document.getElementById('gameStatus').textContent = '✅ Connecté ! À vous de jouer.';
+        document.getElementById('gameStatus').textContent = '✅ Connecté ! Choisissez votre coup.';
         document.getElementById('gameResult').innerHTML = '';
+        // Activer les boutons
+        document.getElementById('pierreBtn').disabled = false;
+        document.getElementById('feuilleBtn').disabled = false;
+        document.getElementById('ciseauxBtn').disabled = false;
       });
 
       connection.on('data', (data) => {
+        logGame(`Reçu: ${JSON.stringify(data)}`);
         if (data.type === 'choice') {
           opponentChoice = data.choice;
           document.getElementById('gameResult').innerHTML += `<p><strong>Adversaire</strong> : ${data.choice}</p>`;
@@ -189,10 +226,15 @@
       });
 
       connection.on('close', () => {
+        logGame('❌ Déconnecté');
         document.getElementById('gameStatus').textContent = '❌ Déconnecté. Attente...';
+        document.getElementById('pierreBtn').disabled = true;
+        document.getElementById('feuilleBtn').disabled = true;
+        document.getElementById('ciseauxBtn').disabled = true;
       });
 
-      connection.on('error', () => {
+      connection.on('error', (err) => {
+        logGame(`⚠️ Erreur: ${err.message}`);
         document.getElementById('gameStatus').textContent = '⚠️ Erreur de connexion.';
       });
     }
@@ -201,63 +243,88 @@
     document.getElementById('createBtn').addEventListener('click', () => {
       partyId = generatePartyId();
       role = 'host';
+      log(`Création de la partie: ${partyId}`);
 
-      peer = new Peer(partyId);
+      peer = initPeer(partyId);
 
-      peer.on('open', () => {
+      peer.on('open', (id) => {
+        log(`Peer ouvert avec ID: ${id}`);
         document.getElementById('partyCode').textContent = partyId;
         const url = `${window.location.origin}${window.location.pathname}?partyId=${partyId}`;
+        document.getElementById('partyUrl').textContent = url;
         new QRCode(document.getElementById('qrcode'), url);
         showScreen('create');
       });
 
       peer.on('connection', (connection) => {
+        log('Nouvelle connexion entrante');
         setupGame(connection);
       });
 
       peer.on('error', (err) => {
-        console.error('Erreur PeerJS:', err);
-        alert('Erreur : ' + err.message + '\n\nVérifiez votre connexion Internet.');
+        log(`Erreur PeerJS: ${err.message}`);
+        alert(`Erreur: ${err.message}\n\nEssayez de rafraîchir la page ou vérifiez votre connexion.`);
       });
     });
 
-    // --- Rejoindre une partie (scan QR) ---
-    document.getElementById('scanBtn').addEventListener('click', () => {
+    // --- Rejoindre une partie (scan QR avec ZXing) ---
+    document.getElementById('scanBtn').addEventListener('click', async () => {
       showScreen('join');
       scannerDiv.style.display = 'block';
       stopScanBtn.style.display = 'block';
+      document.getElementById('joinStatus').textContent = 'Scannez le QR Code...';
 
-      scannerInstance = new Instascan.Scanner({ video: preview });
-
-      scannerInstance.addListener('scan', (content) => {
-        const url = new URL(content.startsWith('http') ? content : 'https://' + content);
-        const partyIdFromQR = url.searchParams.get('partyId');
-        if (partyIdFromQR) {
-          scannerInstance.stop();
-          scannerDiv.style.display = 'none';
-          stopScanBtn.style.display = 'none';
-          joinParty(partyIdFromQR);
+      try {
+        // Arrêter le scan précédent si existe
+        if (codeReader) {
+          await codeReader.reset();
         }
-      });
-
-      Instascan.Camera.getCameras().then((cameras) => {
-        if (cameras.length > 0) {
-          scannerInstance.start(cameras[0]);
-        } else {
-          alert('Aucune caméra trouvée !');
-          scannerDiv.style.display = 'none';
-          stopScanBtn.style.display = 'none';
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
         }
-      }).catch(() => {
-        alert('Impossible d\'accéder à la caméra.');
+
+        // Initialiser le scanner ZXing
+        codeReader = new ZXing.BrowserQRCodeReader();
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        preview.srcObject = stream;
+
+        codeReader.decodeFromVideoDevice(
+          null,
+          preview,
+          (result, err) => {
+            if (result) {
+              const url = new URL(result.text.startsWith('http') ? result.text : 'https://' + result.text);
+              const partyIdFromQR = url.searchParams.get('partyId');
+              if (partyIdFromQR) {
+                codeReader.reset();
+                stream.getTracks().forEach(track => track.stop());
+                scannerDiv.style.display = 'none';
+                stopScanBtn.style.display = 'none';
+                joinParty(partyIdFromQR);
+              }
+            }
+            if (err && err.name !== 'NotFoundException') {
+              log(`Erreur scan: ${err.message}`);
+            }
+          }
+        );
+      } catch (error) {
+        log(`Erreur caméra: ${error.message}`);
+        alert(`Impossible d'accéder à la caméra: ${error.message}\n\nEssayez l'option manuelle.`);
         scannerDiv.style.display = 'none';
         stopScanBtn.style.display = 'none';
-      });
+      }
     });
 
     // --- Arrêter le scan ---
-    stopScanBtn.addEventListener('click', () => {
-      if (scannerInstance) scannerInstance.stop();
+    stopScanBtn.addEventListener('click', async () => {
+      if (codeReader) {
+        await codeReader.reset();
+      }
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        preview.srcObject = null;
+      }
       scannerDiv.style.display = 'none';
       stopScanBtn.style.display = 'none';
     });
@@ -276,20 +343,29 @@
     function joinParty(partyIdParam) {
       partyId = partyIdParam;
       role = 'guest';
+      log(`Rejoint la partie: ${partyId}`);
       document.getElementById('joinStatus').textContent = 'Connexion en cours...';
 
-      peer = new Peer();
+      peer = initPeer();
 
-      peer.on('open', () => {
+      peer.on('open', (id) => {
+        log(`Peer ouvert avec ID: ${id}`);
         conn = peer.connect(partyId);
-        conn.on('open', () => setupGame(conn));
-        conn.on('error', () => {
+
+        conn.on('open', () => {
+          log('Connexion établie avec le créateur');
+          setupGame(conn);
+        });
+
+        conn.on('error', (err) => {
+          log(`Erreur de connexion: ${err.message}`);
           document.getElementById('joinStatus').textContent = '❌ Impossible de se connecter. Vérifiez le code.';
         });
       });
 
       peer.on('error', (err) => {
-        document.getElementById('joinStatus').textContent = '❌ Erreur : ' + err.message;
+        log(`Erreur PeerJS: ${err.message}`);
+        document.getElementById('joinStatus').textContent = `❌ Erreur: ${err.message}`;
       });
     }
 
@@ -299,16 +375,33 @@
       if (conn && conn.open) {
         conn.send({ type: 'choice', choice });
         document.getElementById('gameResult').innerHTML += `<p><strong>Vous</strong> : ${choice}</p>`;
+        logGame(`Envoyé: ${choice}`);
       } else {
-        document.getElementById('gameResult').innerHTML += '<p style="color: red;">Erreur : pas de connexion</p>';
+        document.getElementById('gameResult').innerHTML += '<p class="error">Erreur: pas de connexion</p>';
+        logGame('Erreur: pas de connexion');
       }
     }
 
     // --- Gérer l'URL au chargement (si lien direct) ---
     window.addEventListener('DOMContentLoaded', () => {
+      log('Page chargée');
       const urlParams = new URLSearchParams(window.location.search);
       const partyIdParam = urlParams.get('partyId');
-      if (partyIdParam) joinParty(partyIdParam);
+      if (partyIdParam) {
+        log(`Rejoint automatiquement la partie: ${partyIdParam}`);
+        joinParty(partyIdParam);
+      } else {
+        log('Aucun code de partie dans l\'URL. Affichage de l\'écran d\'accueil.');
+      }
+    });
+
+    // --- Gérer la fermeture de la page ---
+    window.addEventListener('beforeunload', () => {
+      if (conn) conn.close();
+      if (peer) peer.destroy();
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
     });
   </script>
 </body>
